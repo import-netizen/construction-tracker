@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 import os
-from streamlit_js_eval import streamlit_js_eval
+from streamlit_geolocation import streamlit_geolocation
 
 # ऐप का लेआउट सेट करना
 st.set_page_config(page_title="Construction Tracker", layout="wide")
@@ -19,19 +19,18 @@ def init_db():
 
 init_db()
 
-# फोन/ब्राउज़र से असली GPS लोकेशन लेना
-st.markdown("### 📡 GPS Status")
-loc = streamlit_js_eval(data_theme='dark', component='get_geolocation', key='obj')
+# नए टूल से असली GPS लोकेशन लेना
+st.markdown("### 📡 GPS Tracking Activation")
+st.info("नीचे दिए गए बटन पर क्लिक करके अपनी लाइव लोकेशन एक्टिवेट करें 👇")
+location = streamlit_geolocation()
 
-current_lat = None
-current_lon = None
+current_lat = location.get('latitude')
+current_lon = location.get('longitude')
 
-if loc and 'coords' in loc:
-    current_lat = loc['coords']['latitude']
-    current_lon = loc['coords']['longitude']
-    st.success(f"📍 GPS सिग्नल मिल गया है! (आपकी लाइव लोकेशन ट्रैक होने के लिए तैयार है)")
+if current_lat and current_lon:
+    st.success("📍 GPS सिग्नल पूरी तरह मिल गया है! आप हाजिरी लगा सकते हैं।")
 else:
-    st.warning("⚠️ कृपया अपने ब्राउज़र/फोन में Location (GPS) की Permission को Allow करें।")
+    st.warning("⚠️ कृपया ऊपर दिए गए मैप वाले छोटे आइकॉन पर क्लिक करें या ब्राउज़र में लोकेशन अलाउ करें।")
 
 # मेनू (Tabs) बनाना
 tab1, tab2, tab3, tab4 = st.tabs(["📍 Attendance & Tracking", "💰 Expenses", "🧱 Materials Inward", "📊 Admin Dashboard"])
@@ -47,7 +46,7 @@ with tab1:
             if not emp_name:
                 st.error("❌ कृपया अपना नाम दर्ज करें")
             elif not current_lat or not current_lon:
-                st.error("❌ GPS लोकेशन नहीं मिल पाई। कृपया डिवाइस की लोकेशन ऑन करें।")
+                st.error("❌ GPS लोकेशन नहीं मिल पाई। कृपया कुछ सेकंड रुकें या लोकेशन बटन दबाएं।")
             else:
                 now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 new_data = pd.DataFrame([[emp_name, "Check-In", now, current_lat, current_lon]], columns=["Employee", "Action", "Time", "latitude", "longitude"])
